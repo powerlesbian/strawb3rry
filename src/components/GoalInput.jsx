@@ -25,7 +25,7 @@ export default function GoalInput() {
           />
           <Button 
             type="submit" 
-            className="mt-4 px-6 py-2.5 font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+            className="mt-4 px-6 py-2.5 font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 bg-gray-900 text-black"
           >
             Set Goal
           </Button>
