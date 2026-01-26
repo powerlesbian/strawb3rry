@@ -40,3 +40,17 @@
 .read-the-docs {
   color: #888;
 }
+/* src/components/App.css */
+.card {
+  @apply bg-white p-8 rounded-lg shadow-md;
+}
+
+/* Make the cards larger and add more spacing */
+.card {
+  min-height: 300px; /* Ensures cards have a minimum height */
+}
+
+/* Adjust the spacing between the main sections */
+.main-content {
+  @apply space-y-8; /* Adds more vertical space between the GoalInput and the grid */
+}

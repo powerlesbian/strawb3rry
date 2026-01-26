@@ -1,10 +1,9 @@
-// src/components/App.jsx
 import { useState } from 'react';
-import Header from './Header';
-import PromptBuilder from './PromptBuilder';
-import PromptLibrary from './PromptLibrary';
-import PrinciplesList from './PrinciplesList';
-import PitfallsList from './PitfallsList';
+import Header from './components/Header';
+import PromptBuilder from './components/PromptBuilder';
+import PromptLibrary from './components/PromptLibrary';
+import PrinciplesList from './components/PrinciplesList';
+import PitfallsList from './components/PitfallsList';
 import './App.css';
 
 function App() {
