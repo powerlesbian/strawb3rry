@@ -204,22 +204,24 @@ export default function ConversationsPage() {
     return matchesSearch && matchesRating && matchesProject;
   });
 
-  function StarRating({ rating, onRate, interactive = false }: { rating: number; onRate?: (r: number) => void; interactive?: boolean }) {
+  function StarRating({ rating, onRate, readonly = false }: { 
+    rating: number; 
+    onRate?: (rating: number) => void;
+    readonly?: boolean;
+  }) {
     return (
       <div className="flex space-x-1">
         {[1, 2, 3, 4, 5].map((star) => (
-          <button
+          <span
             key={star}
-            type={interactive ? 'button' : undefined}
-            onClick={() => interactive && onRate?.(star)}
-            className={interactive ? 'cursor-pointer' : 'cursor-default'}
-            disabled={!interactive}
+            onClick={() => !readonly && onRate?.(star)}
+            className={readonly ? 'cursor-default' : 'cursor-pointer'}
           >
             <Star
-              size={interactive ? 24 : 16}
+              size={16}
               className={star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'}
             />
-          </button>
+          </span>
         ))}
       </div>
     );
@@ -471,7 +473,6 @@ export default function ConversationsPage() {
                 <StarRating
                   rating={formData.rating}
                   onRate={(r) => setFormData({ ...formData, rating: r })}
-                  interactive
                 />
               </div>
 

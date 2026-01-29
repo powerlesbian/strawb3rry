@@ -1,0 +1,9 @@
+{
+  "name": "AI Conversations Tracker",
+  "short_name": "AI Tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "icons": []
+}
