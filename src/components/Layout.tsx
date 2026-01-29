@@ -1,19 +1,23 @@
 import { ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, FolderKanban, MessageSquare, Lightbulb, User } from 'lucide-react';
+import { LogOut, FolderKanban, MessageSquare, Lightbulb, User, MessagesSquare, LayoutDashboard } from 'lucide-react';
+
+type Page = 'dashboard' | 'projects' | 'prompts' | 'learnings' | 'conversations' | 'profile';
 
 type LayoutProps = {
   children: ReactNode;
-  currentPage: 'projects' | 'prompts' | 'learnings' | 'profile';
-  onNavigate: (page: 'projects' | 'prompts' | 'learnings' | 'profile') => void;
+  currentPage: Page;
+  onNavigate: (page: Page) => void;
 };
 
 export default function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const { profile, signOut } = useAuth();
 
   const navItems = [
+    { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'projects' as const, label: 'Projects', icon: FolderKanban },
     { id: 'prompts' as const, label: 'Prompts', icon: MessageSquare },
+    { id: 'conversations' as const, label: 'Conversations', icon: MessagesSquare },
     { id: 'learnings' as const, label: 'Learnings', icon: Lightbulb },
   ];
 
@@ -24,7 +28,12 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-8">
-              <h1 className="text-xl font-bold text-white">Strawb3rry</h1>
+              <button 
+                onClick={() => onNavigate('dashboard')}
+                className="text-xl font-bold text-white hover:text-indigo-400 transition-colors"
+              >
+                Strawb3rry
+              </button>
               
               <nav className="hidden md:flex space-x-1">
                 {navItems.map((item) => {
