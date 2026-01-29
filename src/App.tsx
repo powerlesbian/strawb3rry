@@ -1,56 +1,66 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import AuthPage from './pages/AuthPage';
 import Layout from './components/Layout';
+import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import ProjectsPage from './pages/ProjectsPage';
-import PromptsPage from './pages/PromptsPage';
-import LearningsPage from './pages/LearningsPage';
-import ProfilePage from './pages/ProfilePage';
 import ConversationsPage from './pages/ConversationsPage';
+import PromptsPage from './pages/PromptsPage';
+import InsightsPage from './pages/InsightsPage';
+import ImportPage from './pages/ImportPage';
+import LearningsPage from './pages/LearningsPage';
 
-console.log('App.tsx loaded');
-
-type Page = 'dashboard' | 'projects' | 'prompts' | 'learnings' | 'conversations' | 'profile';
+type Page = 'dashboard' | 'projects' | 'conversations' | 'prompts' | 'insights' | 'import' | 'learnings';
 
 function AppContent() {
-    console.log('AppContent rendering');
   const { user, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-    console.log('Auth state:', { user: !!user, loading });
 
   if (loading) {
-      console.log('Showing loading spinner');
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
     );
   }
 
   if (!user) {
-      console.log('No user, showing AuthPage');
     return <AuthPage />;
   }
 
-  const pages = {
-    dashboard: <DashboardPage onNavigate={setCurrentPage} />,
-    projects: <ProjectsPage />,
-    prompts: <PromptsPage />,
-    learnings: <LearningsPage />,
-    conversations: <ConversationsPage />,
-    profile: <ProfilePage />,
+  const handleNavigate = (page: Page) => {
+    setCurrentPage(page);
+  };
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <DashboardPage onNavigate={handleNavigate} />;
+      case 'projects':
+        return <ProjectsPage />;
+      case 'conversations':
+        return <ConversationsPage />;
+      case 'prompts':
+        return <PromptsPage />;
+      case 'insights':
+        return <InsightsPage />;
+      case 'import':
+        return <ImportPage />;
+      case 'learnings':
+        return <LearningsPage/>;
+      default:
+        return <DashboardPage onNavigate={handleNavigate} />;
+    }
   };
 
   return (
-    <Layout currentPage={currentPage} onNavigate={setCurrentPage}>
-      {pages[currentPage]}
+    <Layout currentPage={currentPage} setCurrentPage={setCurrentPage}>
+      {renderPage()}
     </Layout>
   );
 }
 
 export default function App() {
-    console.log('App component rendering');
   return (
     <AuthProvider>
       <AppContent />

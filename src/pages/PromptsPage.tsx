@@ -25,23 +25,11 @@ type Prompt = {
   title: string;
   content: string;
   description: string | null;
-  category: string | null;
   tags: string[] | null;
   project_id: string | null;
   projects?: Project | null;
   created_at: string;
 };
-
-const CATEGORIES = [
-  'Coding',
-  'Writing',
-  'Analysis',
-  'Creative',
-  'Research',
-  'Debugging',
-  'Explanation',
-  'Other',
-];
 
 export default function PromptsPage() {
   const { user } = useAuth();
@@ -49,7 +37,7 @@ export default function PromptsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState<string | null>(null);
+  const [filterTag, setFilterTag] = useState<string | null>(null);
   const [filterProject, setFilterProject] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
@@ -60,7 +48,6 @@ export default function PromptsPage() {
     title: '',
     content: '',
     description: '',
-    category: '',
     tags: '',
     project_id: '',
   });
@@ -71,6 +58,11 @@ export default function PromptsPage() {
       fetchProjects();
     }
   }, [user]);
+
+  // Get all unique tags from prompts
+  const allTags = Array.from(
+    new Set(prompts.flatMap((p) => p.tags || []))
+  ).sort();
 
   async function fetchPrompts() {
     try {
@@ -112,8 +104,7 @@ export default function PromptsPage() {
       title: formData.title,
       content: formData.content,
       description: formData.description || null,
-      category: formData.category || null,
-      tags: formData.tags ? formData.tags.split(',').map((t) => t.trim()) : null,
+      tags: formData.tags ? formData.tags.split(',').map((t) => t.trim()).filter(Boolean) : null,
       project_id: formData.project_id || null,
     };
 
@@ -154,7 +145,6 @@ export default function PromptsPage() {
       title: '',
       content: '',
       description: '',
-      category: '',
       tags: '',
       project_id: '',
     });
@@ -167,7 +157,6 @@ export default function PromptsPage() {
       title: prompt.title,
       content: prompt.content,
       description: prompt.description || '',
-      category: prompt.category || '',
       tags: prompt.tags?.join(', ') || '',
       project_id: prompt.project_id || '',
     });
@@ -191,24 +180,11 @@ export default function PromptsPage() {
       prompt.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prompt.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesCategory = filterCategory === null || prompt.category === filterCategory;
+    const matchesTag = filterTag === null || prompt.tags?.includes(filterTag);
     const matchesProject = filterProject === null || prompt.project_id === filterProject;
 
-    return matchesSearch && matchesCategory && matchesProject;
+    return matchesSearch && matchesTag && matchesProject;
   });
-
-  function getCategoryColor(category: string | null) {
-    switch (category) {
-      case 'Coding': return 'bg-blue-500/20 text-blue-400';
-      case 'Writing': return 'bg-purple-500/20 text-purple-400';
-      case 'Analysis': return 'bg-green-500/20 text-green-400';
-      case 'Creative': return 'bg-pink-500/20 text-pink-400';
-      case 'Research': return 'bg-yellow-500/20 text-yellow-400';
-      case 'Debugging': return 'bg-red-500/20 text-red-400';
-      case 'Explanation': return 'bg-cyan-500/20 text-cyan-400';
-      default: return 'bg-slate-500/20 text-slate-400';
-    }
-  }
 
   if (loading) {
     return (
@@ -252,13 +228,13 @@ export default function PromptsPage() {
         </div>
 
         <select
-          value={filterCategory ?? ''}
-          onChange={(e) => setFilterCategory(e.target.value || null)}
+          value={filterTag ?? ''}
+          onChange={(e) => setFilterTag(e.target.value || null)}
           className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
         >
-          <option value="">All Categories</option>
-          {CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
+          <option value="">All Tags</option>
+          {allTags.map((tag) => (
+            <option key={tag} value={tag}>{tag}</option>
           ))}
         </select>
 
@@ -302,16 +278,11 @@ export default function PromptsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-3 mb-2">
                       <h3 className="text-white font-medium truncate">{prompt.title}</h3>
-                      {prompt.category && (
-                        <span className={`px-2 py-0.5 text-xs rounded-full ${getCategoryColor(prompt.category)}`}>
-                          {prompt.category}
-                        </span>
-                      )}
                     </div>
                     {prompt.description && (
                       <p className="text-slate-400 text-sm mb-2 line-clamp-1">{prompt.description}</p>
                     )}
-                    <div className="flex items-center space-x-4 text-sm text-slate-500">
+                    <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-slate-500">
                       {prompt.projects && (
                         <span className="flex items-center space-x-1">
                           <FolderKanban size={14} />
@@ -319,10 +290,17 @@ export default function PromptsPage() {
                         </span>
                       )}
                       {prompt.tags && prompt.tags.length > 0 && (
-                        <span className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1 flex-wrap gap-1">
                           <Tag size={14} />
-                          <span>{prompt.tags.length} tags</span>
-                        </span>
+                          {prompt.tags.slice(0, 3).map((tag, i) => (
+                            <span key={i} className="px-2 py-0.5 bg-slate-700 text-slate-300 text-xs rounded-full">
+                              {tag}
+                            </span>
+                          ))}
+                          {prompt.tags.length > 3 && (
+                            <span className="text-slate-500 text-xs">+{prompt.tags.length - 3} more</span>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -434,34 +412,18 @@ export default function PromptsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="">Select category...</option>
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Project</label>
-                  <select
-                    value={formData.project_id}
-                    onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="">No project</option>
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>{p.title}</option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Project</label>
+                <select
+                  value={formData.project_id}
+                  onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="">No project</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>{p.title}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -483,7 +445,7 @@ export default function PromptsPage() {
                   value={formData.tags}
                   onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
-                  placeholder="react, typescript, api (comma-separated)"
+                  placeholder="coding, react, typescript (comma-separated)"
                 />
               </div>
 

@@ -1,119 +1,129 @@
-import { ReactNode } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, FolderKanban, MessageSquare, Lightbulb, User, MessagesSquare, LayoutDashboard } from 'lucide-react';
+import {
+  LayoutDashboard,
+  FolderKanban,
+  MessageSquare,
+  Sparkles,
+  BarChart3,
+  Menu,
+  X,
+  LogOut,
+  Upload,
+} from 'lucide-react';
 
-type Page = 'dashboard' | 'projects' | 'prompts' | 'learnings' | 'conversations' | 'profile';
+type Page = 'dashboard' | 'projects' | 'conversations' | 'prompts' | 'insights' | 'import' | 'learnings';
+
+const navigation: { name: string; page: Page; icon: React.ElementType }[] = [
+  { name: 'Dashboard', page: 'dashboard', icon: LayoutDashboard },
+  { name: 'Projects', page: 'projects', icon: FolderKanban },
+  { name: 'Conversations', page: 'conversations', icon: MessageSquare },
+  { name: 'Prompts', page: 'prompts', icon: Sparkles },
+  { name: 'Insights', page: 'insights', icon: BarChart3 },
+  { name: 'Import', page: 'import', icon: Upload },
+];
 
 type LayoutProps = {
-  children: ReactNode;
+  children: React.ReactNode;
   currentPage: Page;
-  onNavigate: (page: Page) => void;
+  setCurrentPage: (page: Page) => void;
 };
 
-export default function Layout({ children, currentPage, onNavigate }: LayoutProps) {
-  const { profile, signOut } = useAuth();
+export default function Layout({ children, currentPage, setCurrentPage }: LayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
-  const navItems = [
-    { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'projects' as const, label: 'Projects', icon: FolderKanban },
-    { id: 'prompts' as const, label: 'Prompts', icon: MessageSquare },
-    { id: 'conversations' as const, label: 'Conversations', icon: MessagesSquare },
-    { id: 'learnings' as const, label: 'Learnings', icon: Lightbulb },
-  ];
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <div className="min-h-screen bg-slate-900">
-      {/* Header */}
-      <header className="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <button 
-                onClick={() => onNavigate('dashboard')}
-                className="text-xl font-bold text-white hover:text-indigo-400 transition-colors"
-              >
-                Strawb3rry
-              </button>
-              
-              <nav className="hidden md:flex space-x-1">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => onNavigate(item.id)}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                        currentPage === item.id
-                          ? 'bg-indigo-600 text-white'
-                          : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                      }`}
-                    >
-                      <Icon size={18} />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => onNavigate('profile')}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                  currentPage === 'profile'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.display_name || 'Profile'}
-                    className="w-6 h-6 rounded-full"
-                  />
-                ) : (
-                  <User size={18} />
-                )}
-                <span className="hidden sm:inline">{profile?.display_name || 'Profile'}</span>
-              </button>
-              
-              <button
-                onClick={signOut}
-                className="flex items-center space-x-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <LogOut size={18} />
-                <span className="hidden sm:inline">Sign out</span>
-              </button>
-            </div>
-          </div>
+      {/* Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-slate-800 border-r border-slate-700 transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
+          <h1 className="text-xl font-bold text-white">AI Journal</h1>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden text-slate-400 hover:text-white"
+          >
+            <X size={24} />
+          </button>
         </div>
 
-        {/* Mobile nav */}
-        <nav className="md:hidden flex border-t border-slate-700">
-          {navItems.map((item) => {
-            const Icon = item.icon;
+        <nav className="p-4 space-y-2">
+          {navigation.map((item) => {
+            const isActive = currentPage === item.page;
             return (
               <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={`flex-1 flex flex-col items-center py-3 transition-colors ${
-                  currentPage === item.id
-                    ? 'text-indigo-400 bg-slate-700/50'
-                    : 'text-slate-400'
+                key={item.name}
+                onClick={() => {
+                  setCurrentPage(item.page);
+                  setSidebarOpen(false);
+                }}
+                className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors w-full text-left ${
+                  isActive
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                 }`}
               >
-                <Icon size={20} />
-                <span className="text-xs mt-1">{item.label}</span>
+                <item.icon size={20} />
+                <span>{item.name}</span>
               </button>
             );
           })}
         </nav>
-      </header>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+          <div className="flex items-center space-x-3 px-4 py-2 mb-2">
+            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+              <span className="text-white text-sm font-medium">
+                {user?.email?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-white truncate">{user?.email}</p>
+            </div>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center space-x-3 px-4 py-2.5 w-full rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+          >
+            <LogOut size={20} />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </aside>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <div className="lg:pl-64">
+        {/* Mobile header */}
+        <header className="lg:hidden flex items-center justify-between h-16 px-4 bg-slate-800 border-b border-slate-700">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="text-slate-400 hover:text-white"
+          >
+            <Menu size={24} />
+          </button>
+          <h1 className="text-lg font-bold text-white">AI Journal</h1>
+          <div className="w-6" />
+        </header>
+
+        {/* Page content */}
+        <main className="p-6">{children}</main>
+      </div>
     </div>
   );
 }

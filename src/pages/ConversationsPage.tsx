@@ -61,9 +61,14 @@ export default function ConversationsPage() {
 
   const aiModels = [
     'Claude 3.5 Sonnet',
+    'Claude 3.5 Haiku', 
     'Claude 3 Opus',
+    'Claude 3 Sonnet',
+    'Claude 3 Haiku',
     'GPT-4o',
+    'GPT-4 Turbo',
     'GPT-4',
+    'GPT-3.5 Turbo',
     'Gemini Pro',
     'Gemini Ultra',
     'Other',
