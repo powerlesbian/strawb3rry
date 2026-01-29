@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase, Project } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Plus, Copy, Check, Trash2, Edit3, ChevronRight, Clock } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, Edit3, ChevronRight, Clock, FolderKanban } from 'lucide-react';
+
 
 export default function ProjectsPage() {
   const { user } = useAuth();
