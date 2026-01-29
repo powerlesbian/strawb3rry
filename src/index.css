@@ -9,6 +9,10 @@
 @tailwind components;
 @tailwind utilities;
 
+
+body {
+  @apply bg-slate-900 text-white antialiased;
+}
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
