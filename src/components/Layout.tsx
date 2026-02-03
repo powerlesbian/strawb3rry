@@ -10,9 +10,10 @@ import {
   X,
   LogOut,
   Upload,
+  Settings,
 } from 'lucide-react';
 
-type Page = 'dashboard' | 'projects' | 'conversations' | 'prompts' | 'insights' | 'import' | 'learnings';
+type Page = 'dashboard' | 'projects' | 'conversations' | 'prompts' | 'insights' | 'import' | 'learnings' | 'profile';
 
 const navigation: { name: string; page: Page; icon: React.ElementType }[] = [
   { name: 'Dashboard', page: 'dashboard', icon: LayoutDashboard },
@@ -87,7 +88,17 @@ export default function Layout({ children, currentPage, setCurrentPage }: Layout
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
-          <div className="flex items-center space-x-3 px-4 py-2 mb-2">
+          <button
+            onClick={() => {
+              setCurrentPage('profile');
+              setSidebarOpen(false);
+            }}
+            className={`flex items-center space-x-3 px-4 py-2 mb-2 w-full rounded-lg transition-colors ${
+              currentPage === 'profile'
+                ? 'bg-indigo-600'
+                : 'hover:bg-slate-700'
+            }`}
+          >
             <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
               <span className="text-white text-sm font-medium">
                 {user?.email?.charAt(0).toUpperCase()}
@@ -96,7 +107,8 @@ export default function Layout({ children, currentPage, setCurrentPage }: Layout
             <div className="flex-1 min-w-0">
               <p className="text-sm text-white truncate">{user?.email}</p>
             </div>
-          </div>
+            <Settings size={16} className="text-slate-400" />
+          </button>
           <button
             onClick={handleSignOut}
             className="flex items-center space-x-3 px-4 py-2.5 w-full rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"

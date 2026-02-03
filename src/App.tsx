@@ -9,8 +9,9 @@ import PromptsPage from './pages/PromptsPage';
 import InsightsPage from './pages/InsightsPage';
 import ImportPage from './pages/ImportPage';
 import LearningsPage from './pages/LearningsPage';
+import ProfilePage from './pages/ProfilePage';
 
-type Page = 'dashboard' | 'projects' | 'conversations' | 'prompts' | 'insights' | 'import' | 'learnings';
+type Page = 'dashboard' | 'projects' | 'conversations' | 'prompts' | 'insights' | 'import' | 'learnings' | 'profile';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -47,7 +48,9 @@ function AppContent() {
       case 'import':
         return <ImportPage />;
       case 'learnings':
-        return <LearningsPage/>;
+        return <LearningsPage />;
+      case 'profile':
+        return <ProfilePage />;
       default:
         return <DashboardPage onNavigate={handleNavigate} />;
     }
