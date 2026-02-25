@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase, Idea, Project } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Lightbulb, Trash2, Send } from 'lucide-react';
+import { Lightbulb, Trash2, Send, Search } from 'lucide-react';
 
 export default function IdeasPage() {
   const { user } = useAuth();
@@ -10,6 +10,7 @@ export default function IdeasPage() {
   const [content, setContent] = useState('');
   const [projectId, setProjectId] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -129,15 +130,30 @@ export default function IdeasPage() {
         </div>
       </div>
 
-      {ideas.length === 0 ? (
+      {ideas.length > 0 && (
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search ideas..."
+            className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          />
+        </div>
+      )}
+
+      {(() => {
+        const filtered = ideas.filter((i) => i.content.toLowerCase().includes(search.toLowerCase()));
+        return filtered.length === 0 ? (
         <div className="text-center py-16 bg-slate-800/50 rounded-xl border border-slate-700">
           <Lightbulb className="mx-auto text-slate-600 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-slate-300">No ideas yet</h3>
-          <p className="text-slate-500 mt-1">Capture your first idea above</p>
+          <h3 className="text-lg font-medium text-slate-300">{search ? 'No matches' : 'No ideas yet'}</h3>
+          <p className="text-slate-500 mt-1">{search ? 'Try a different search' : 'Capture your first idea above'}</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {ideas.map((idea) => {
+          {filtered.map((idea) => {
             const linkedProject = projects.find((p) => p.id === idea.project_id);
             return (
               <div
@@ -165,7 +181,8 @@ export default function IdeasPage() {
             );
           })}
         </div>
-      )}
+      );
+      })()}
     </div>
   );
 }

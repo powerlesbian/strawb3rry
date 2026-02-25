@@ -8,6 +8,7 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,24 +19,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  async function loadProfile(userId: string, email: string | undefined): Promise<Profile> {
+    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    return data || {
+      id: userId,
+      email: email || null,
+      display_name: email?.split('@')[0] || null,
+      avatar_url: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  }
+
+  async function refreshProfile() {
+    if (user) {
+      const p = await loadProfile(user.id, user.email);
+      setProfile(p);
+    }
+  }
+
   useEffect(() => {
     // Failsafe timeout - always stop loading after 3 seconds
     const failsafe = setTimeout(() => {
       setLoading(false);
     }, 3000);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setProfile({
-          id: session.user.id,
-          email: session.user.email || null,
-          display_name: session.user.email?.split('@')[0] || null,
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+        const p = await loadProfile(session.user.id, session.user.email);
+        setProfile(p);
       }
       clearTimeout(failsafe);
       setLoading(false);
@@ -44,18 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setProfile({
-          id: session.user.id,
-          email: session.user.email || null,
-          display_name: session.user.email?.split('@')[0] || null,
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+        const p = await loadProfile(session.user.id, session.user.email);
+        setProfile(p);
       } else {
         setProfile(null);
       }
@@ -75,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, profile, session, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

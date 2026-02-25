@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { supabase, Project, ProjectColor, PROJECT_COLORS } from '../lib/supabase';
+import { supabase, Project, ProjectColor, PROJECT_COLORS, Idea } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Plus, Copy, Check, Trash2, Edit3, ChevronRight, Clock, FolderKanban } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, Edit3, ChevronRight, Clock, FolderKanban, Pin, Search, Lightbulb } from 'lucide-react';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 function ColorPicker({ selected, onChange }: { selected: ProjectColor; onChange: (color: ProjectColor) => void }) {
   return (
@@ -22,7 +23,19 @@ function ColorPicker({ selected, onChange }: { selected: ProjectColor; onChange:
 
 function getColorClasses(color: ProjectColor) {
   const found = PROJECT_COLORS.find((c) => c.name === color);
-  return found || PROJECT_COLORS[4]; // default blue
+  return found || PROJECT_COLORS[4];
+}
+
+function buildContextString(project: Project) {
+  return `# ${project.title}
+
+${project.description || ''}
+
+## Context
+${project.context_markdown}
+
+## Key Learnings & Decisions
+${project.learnings_summary}`.trim();
 }
 
 export default function ProjectsPage() {
@@ -30,9 +43,16 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projectIdeas, setProjectIdeas] = useState<Idea[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showNewForm, setShowNewForm] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [pinnedIds, setPinnedIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('pinnedProjects') || '[]'); }
+    catch { return []; }
+  });
 
   // Form state
   const [title, setTitle] = useState('');
@@ -51,7 +71,6 @@ export default function ProjectsPage() {
         .from('projects')
         .select('*')
         .order('updated_at', { ascending: false });
-
       if (error) throw error;
       setProjects(data || []);
     } catch (error) {
@@ -63,7 +82,6 @@ export default function ProjectsPage() {
 
   async function createProject() {
     if (!title.trim() || !user) return;
-
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -77,7 +95,6 @@ export default function ProjectsPage() {
         })
         .select()
         .single();
-
       if (error) throw error;
       setProjects([data, ...projects]);
       setShowNewForm(false);
@@ -85,6 +102,7 @@ export default function ProjectsPage() {
       setDescription('');
       setColor('blue');
       setSelectedProject(data);
+      setProjectIdeas([]);
     } catch (error) {
       console.error('Error creating project:', error);
     }
@@ -92,7 +110,6 @@ export default function ProjectsPage() {
 
   async function updateProject() {
     if (!selectedProject) return;
-
     try {
       const { error } = await supabase
         .from('projects')
@@ -105,9 +122,7 @@ export default function ProjectsPage() {
           updated_at: new Date().toISOString(),
         })
         .eq('id', selectedProject.id);
-
       if (error) throw error;
-
       const updated = {
         ...selectedProject,
         title,
@@ -117,7 +132,6 @@ export default function ProjectsPage() {
         color,
         updated_at: new Date().toISOString(),
       };
-
       setSelectedProject(updated);
       setProjects(projects.map((p) => (p.id === updated.id ? updated : p)));
       setIsEditing(false);
@@ -128,10 +142,8 @@ export default function ProjectsPage() {
 
   async function deleteProject(id: string) {
     if (!confirm('Delete this project? This cannot be undone.')) return;
-
     try {
       const { error } = await supabase.from('projects').delete().eq('id', id);
-
       if (error) throw error;
       setProjects(projects.filter((p) => p.id !== id));
       if (selectedProject?.id === id) setSelectedProject(null);
@@ -142,24 +154,26 @@ export default function ProjectsPage() {
 
   function copyContext() {
     if (!selectedProject) return;
-
-    const contextToCopy = `# ${selectedProject.title}
-
-${selectedProject.description || ''}
-
-## Context
-${selectedProject.context_markdown}
-
-## Key Learnings & Decisions
-${selectedProject.learnings_summary}
-`.trim();
-
-    navigator.clipboard.writeText(contextToCopy);
+    navigator.clipboard.writeText(buildContextString(selectedProject));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function openProject(project: Project) {
+  function copyCardContext(project: Project) {
+    navigator.clipboard.writeText(buildContextString(project));
+    setCopiedId(project.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  function togglePin(id: string) {
+    const next = pinnedIds.includes(id)
+      ? pinnedIds.filter((p) => p !== id)
+      : [...pinnedIds, id];
+    setPinnedIds(next);
+    localStorage.setItem('pinnedProjects', JSON.stringify(next));
+  }
+
+  async function openProject(project: Project) {
     setSelectedProject(project);
     setTitle(project.title);
     setDescription(project.description || '');
@@ -167,7 +181,23 @@ ${selectedProject.learnings_summary}
     setLearningsSummary(project.learnings_summary);
     setColor(project.color || 'blue');
     setIsEditing(false);
+    const { data } = await supabase
+      .from('ideas')
+      .select('*')
+      .eq('project_id', project.id)
+      .order('created_at', { ascending: false });
+    setProjectIdeas(data || []);
   }
+
+  const filteredProjects = projects.filter((p) => {
+    const q = search.toLowerCase();
+    return p.title.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q);
+  });
+
+  const sortedProjects = [
+    ...filteredProjects.filter((p) => pinnedIds.includes(p.id)),
+    ...filteredProjects.filter((p) => !pinnedIds.includes(p.id)),
+  ];
 
   if (loading) {
     return (
@@ -180,7 +210,6 @@ ${selectedProject.learnings_summary}
   // Project detail view
   if (selectedProject) {
     const colorClasses = getColorClasses(selectedProject.color || 'blue');
-
     return (
       <div className="space-y-6">
         <button
@@ -209,7 +238,6 @@ ${selectedProject.learnings_summary}
                 ) : (
                   <h2 className="text-2xl font-bold text-white">{selectedProject.title}</h2>
                 )}
-
                 {isEditing ? (
                   <textarea
                     value={description}
@@ -224,16 +252,10 @@ ${selectedProject.learnings_summary}
                   )
                 )}
               </div>
-
               <div className="flex items-center space-x-2 ml-4">
                 {isEditing ? (
                   <>
-                    <button
-                      onClick={updateProject}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500"
-                    >
-                      Save
-                    </button>
+                    <button onClick={updateProject} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500">Save</button>
                     <button
                       onClick={() => {
                         setIsEditing(false);
@@ -244,29 +266,18 @@ ${selectedProject.learnings_summary}
                         setColor(selectedProject.color || 'blue');
                       }}
                       className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
-                    >
-                      Cancel
-                    </button>
+                    >Cancel</button>
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={copyContext}
-                      className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500"
-                    >
+                    <button onClick={copyContext} className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500">
                       {copied ? <Check size={18} /> : <Copy size={18} />}
                       <span>{copied ? 'Copied!' : 'Copy Context'}</span>
                     </button>
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg"
-                    >
+                    <button onClick={() => setIsEditing(true)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg">
                       <Edit3 size={18} />
                     </button>
-                    <button
-                      onClick={() => deleteProject(selectedProject.id)}
-                      className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg"
-                    >
+                    <button onClick={() => deleteProject(selectedProject.id)} className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
                       <Trash2 size={18} />
                     </button>
                   </>
@@ -277,12 +288,8 @@ ${selectedProject.learnings_summary}
 
           <div className="p-6 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Project Context
-              </label>
-              <p className="text-xs text-slate-500 mb-2">
-                Paste important context here—code snippets, decisions, current state. Copy this into new AI chats.
-              </p>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Project Context</label>
+              <p className="text-xs text-slate-500 mb-2">Paste important context here—code snippets, decisions, current state. Copy this into new AI chats.</p>
               {isEditing ? (
                 <textarea
                   value={contextMarkdown}
@@ -291,21 +298,18 @@ ${selectedProject.learnings_summary}
                   placeholder="# Current state&#10;&#10;## What's working&#10;- ...&#10;&#10;## What's left to do&#10;- ..."
                 />
               ) : (
-                <div className="w-full min-h-32 bg-slate-700/50 text-slate-100 rounded-lg px-4 py-3 font-mono text-sm whitespace-pre-wrap">
-                  {contextMarkdown || (
-                    <span className="text-slate-500 italic">No context yet. Click edit to add.</span>
-                  )}
+                <div className="w-full min-h-32 bg-slate-700/50 rounded-lg px-4 py-3">
+                  {contextMarkdown
+                    ? <MarkdownRenderer content={contextMarkdown} />
+                    : <span className="text-slate-500 italic text-sm">No context yet. Click edit to add.</span>
+                  }
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Key Learnings & Decisions
-              </label>
-              <p className="text-xs text-slate-500 mb-2">
-                Record important mistakes, insights, and why you made certain decisions.
-              </p>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Key Learnings & Decisions</label>
+              <p className="text-xs text-slate-500 mb-2">Record important mistakes, insights, and why you made certain decisions.</p>
               {isEditing ? (
                 <textarea
                   value={learningsSummary}
@@ -314,13 +318,31 @@ ${selectedProject.learnings_summary}
                   placeholder="- Don't use X because...&#10;- Chose Y over Z because..."
                 />
               ) : (
-                <div className="w-full min-h-24 bg-slate-700/50 text-slate-100 rounded-lg px-4 py-3 font-mono text-sm whitespace-pre-wrap">
-                  {learningsSummary || (
-                    <span className="text-slate-500 italic">No learnings yet. Click edit to add.</span>
-                  )}
+                <div className="w-full min-h-24 bg-slate-700/50 rounded-lg px-4 py-3">
+                  {learningsSummary
+                    ? <MarkdownRenderer content={learningsSummary} />
+                    : <span className="text-slate-500 italic text-sm">No learnings yet. Click edit to add.</span>
+                  }
                 </div>
               )}
             </div>
+
+            {projectIdeas.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
+                  <Lightbulb size={15} />
+                  Linked Ideas ({projectIdeas.length})
+                </label>
+                <div className="space-y-2">
+                  {projectIdeas.map((idea) => (
+                    <div key={idea.id} className="bg-slate-700/50 rounded-lg px-4 py-3">
+                      <p className="text-sm text-slate-300 whitespace-pre-wrap">{idea.content}</p>
+                      <p className="text-xs text-slate-500 mt-1">{new Date(idea.created_at).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -336,12 +358,7 @@ ${selectedProject.learnings_summary}
           <p className="text-slate-400">Your AI project workspaces</p>
         </div>
         <button
-          onClick={() => {
-            setShowNewForm(true);
-            setTitle('');
-            setDescription('');
-            setColor('blue');
-          }}
+          onClick={() => { setShowNewForm(true); setTitle(''); setDescription(''); setColor('blue'); }}
           className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500"
         >
           <Plus size={18} />
@@ -373,50 +390,70 @@ ${selectedProject.learnings_summary}
               <ColorPicker selected={color} onChange={setColor} />
             </div>
             <div className="flex space-x-3">
-              <button
-                onClick={createProject}
-                disabled={!title.trim()}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Create
-              </button>
-              <button
-                onClick={() => {
-                  setShowNewForm(false);
-                  setTitle('');
-                  setDescription('');
-                  setColor('blue');
-                }}
-                className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
-              >
-                Cancel
-              </button>
+              <button onClick={createProject} disabled={!title.trim()} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">Create</button>
+              <button onClick={() => { setShowNewForm(false); setTitle(''); setDescription(''); setColor('blue'); }} className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600">Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {projects.length === 0 ? (
+      {projects.length > 0 && (
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search projects..."
+            className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          />
+        </div>
+      )}
+
+      {sortedProjects.length === 0 ? (
         <div className="text-center py-16 bg-slate-800/50 rounded-xl border border-slate-700">
           <FolderKanban className="mx-auto text-slate-600 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-slate-300">No projects yet</h3>
-          <p className="text-slate-500 mt-1">Create your first project to start tracking context</p>
+          <h3 className="text-lg font-medium text-slate-300">{search ? 'No matches' : 'No projects yet'}</h3>
+          <p className="text-slate-500 mt-1">{search ? 'Try a different search' : 'Create your first project to start tracking context'}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => {
+          {sortedProjects.map((project) => {
             const colorClasses = getColorClasses(project.color || 'blue');
+            const isPinned = pinnedIds.includes(project.id);
             return (
-              <button
+              <div
                 key={project.id}
                 onClick={() => openProject(project)}
-                className="text-left bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-slate-500 transition-colors group"
+                className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-slate-500 transition-colors group cursor-pointer"
               >
                 <div className={`h-2 ${colorClasses.bg}`} />
                 <div className="p-5">
-                  <h3 className="font-medium text-white group-hover:text-indigo-400 transition-colors">
-                    {project.title}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="font-medium text-white group-hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                      {isPinned && <Pin size={12} className="text-indigo-400 shrink-0" />}
+                      {project.title}
+                    </h3>
+                    <div
+                      className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => copyCardContext(project)}
+                        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded"
+                        title="Copy context"
+                      >
+                        {copiedId === project.id ? <Check size={13} /> : <Copy size={13} />}
+                      </button>
+                      <button
+                        onClick={() => togglePin(project.id)}
+                        className={`p-1.5 rounded hover:bg-slate-700 ${isPinned ? 'text-indigo-400' : 'text-slate-400 hover:text-white'}`}
+                        title={isPinned ? 'Unpin' : 'Pin to top'}
+                      >
+                        <Pin size={13} />
+                      </button>
+                    </div>
+                  </div>
                   {project.description && (
                     <p className="text-slate-400 text-sm mt-1 line-clamp-2">{project.description}</p>
                   )}
@@ -425,7 +462,7 @@ ${selectedProject.learnings_summary}
                     <span>Updated {new Date(project.updated_at).toLocaleDateString()}</span>
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>

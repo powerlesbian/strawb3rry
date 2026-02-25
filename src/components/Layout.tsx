@@ -24,7 +24,7 @@ type LayoutProps = {
 
 export default function Layout({ children, currentPage, setCurrentPage }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -95,13 +95,16 @@ export default function Layout({ children, currentPage, setCurrentPage }: Layout
             <span>Settings</span>
           </button>
           <div className="flex items-center space-x-3 px-4 py-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center shrink-0">
               <span className="text-white text-sm font-medium">
-                {user?.email?.charAt(0).toUpperCase()}
+                {(profile?.display_name || user?.email)?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-slate-300 truncate">{user?.email}</p>
+              <p className="text-sm text-white font-medium truncate">
+                {profile?.display_name || user?.email?.split('@')[0]}
+              </p>
+              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
           <button

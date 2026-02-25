@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Check, User, Lock } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [displayName, setDisplayName] = useState('');
   const [savingName, setSavingName] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
@@ -39,6 +39,7 @@ export default function SettingsPage() {
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;
+      await refreshProfile();
       setNameSaved(true);
       setTimeout(() => setNameSaved(false), 2000);
     } catch (err) {
