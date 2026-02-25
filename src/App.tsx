@@ -2,20 +2,32 @@ import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import AuthPage from './pages/AuthPage';
-import DashboardPage from './pages/DashboardPage';
 import ProjectsPage from './pages/ProjectsPage';
-import ConversationsPage from './pages/ConversationsPage';
-import PromptsPage from './pages/PromptsPage';
-import InsightsPage from './pages/InsightsPage';
-import ImportPage from './pages/ImportPage';
-import LearningsPage from './pages/LearningsPage';
-import ProfilePage from './pages/ProfilePage';
 
-type Page = 'dashboard' | 'projects' | 'conversations' | 'prompts' | 'insights' | 'import' | 'learnings' | 'profile';
+type Page = 'projects' | 'ideas' | 'settings';
+
+// Placeholder pages - we'll build these out
+function IdeasPage() {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-white">Ideas</h2>
+      <p className="text-slate-400">Quick capture for thoughts and ideas. Coming soon.</p>
+    </div>
+  );
+}
+
+function SettingsPage() {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-white">Settings</h2>
+      <p className="text-slate-400">App preferences. Coming soon.</p>
+    </div>
+  );
+}
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [currentPage, setCurrentPage] = useState<Page>('projects');
 
   if (loading) {
     return (
@@ -29,30 +41,16 @@ function AppContent() {
     return <AuthPage />;
   }
 
-  const handleNavigate = (page: Page) => {
-    setCurrentPage(page);
-  };
-
   const renderPage = () => {
     switch (currentPage) {
-      case 'dashboard':
-        return <DashboardPage onNavigate={handleNavigate} />;
       case 'projects':
         return <ProjectsPage />;
-      case 'conversations':
-        return <ConversationsPage />;
-      case 'prompts':
-        return <PromptsPage />;
-      case 'insights':
-        return <InsightsPage />;
-      case 'import':
-        return <ImportPage />;
-      case 'learnings':
-        return <LearningsPage />;
-      case 'profile':
-        return <ProfilePage />;
+      case 'ideas':
+        return <IdeasPage />;
+      case 'settings':
+        return <SettingsPage />;
       default:
-        return <DashboardPage onNavigate={handleNavigate} />;
+        return <ProjectsPage />;
     }
   };
 

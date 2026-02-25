@@ -1,8 +1,29 @@
 import { useState, useEffect } from 'react';
-import { supabase, Project } from '../lib/supabase';
+import { supabase, Project, ProjectColor, PROJECT_COLORS } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Plus, Copy, Check, Trash2, Edit3, ChevronRight, Clock, FolderKanban } from 'lucide-react';
 
+function ColorPicker({ selected, onChange }: { selected: ProjectColor; onChange: (color: ProjectColor) => void }) {
+  return (
+    <div className="flex items-center space-x-2">
+      {PROJECT_COLORS.map((color) => (
+        <button
+          key={color.name}
+          type="button"
+          onClick={() => onChange(color.name)}
+          className={`w-6 h-6 rounded-full ${color.bg} ${
+            selected === color.name ? 'ring-2 ring-offset-2 ring-offset-slate-800 ring-white' : ''
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function getColorClasses(color: ProjectColor) {
+  const found = PROJECT_COLORS.find((c) => c.name === color);
+  return found || PROJECT_COLORS[4]; // default blue
+}
 
 export default function ProjectsPage() {
   const { user } = useAuth();
@@ -18,6 +39,7 @@ export default function ProjectsPage() {
   const [description, setDescription] = useState('');
   const [contextMarkdown, setContextMarkdown] = useState('');
   const [learningsSummary, setLearningsSummary] = useState('');
+  const [color, setColor] = useState<ProjectColor>('blue');
 
   useEffect(() => {
     if (user) fetchProjects();
@@ -51,6 +73,7 @@ export default function ProjectsPage() {
           description: description.trim() || null,
           context_markdown: '',
           learnings_summary: '',
+          color,
         })
         .select()
         .single();
@@ -60,6 +83,7 @@ export default function ProjectsPage() {
       setShowNewForm(false);
       setTitle('');
       setDescription('');
+      setColor('blue');
       setSelectedProject(data);
     } catch (error) {
       console.error('Error creating project:', error);
@@ -77,23 +101,25 @@ export default function ProjectsPage() {
           description,
           context_markdown: contextMarkdown,
           learnings_summary: learningsSummary,
+          color,
           updated_at: new Date().toISOString(),
         })
         .eq('id', selectedProject.id);
 
       if (error) throw error;
-      
+
       const updated = {
         ...selectedProject,
         title,
         description,
         context_markdown: contextMarkdown,
         learnings_summary: learningsSummary,
+        color,
         updated_at: new Date().toISOString(),
       };
-      
+
       setSelectedProject(updated);
-      setProjects(projects.map(p => p.id === updated.id ? updated : p));
+      setProjects(projects.map((p) => (p.id === updated.id ? updated : p)));
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating project:', error);
@@ -104,13 +130,10 @@ export default function ProjectsPage() {
     if (!confirm('Delete this project? This cannot be undone.')) return;
 
     try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('projects').delete().eq('id', id);
 
       if (error) throw error;
-      setProjects(projects.filter(p => p.id !== id));
+      setProjects(projects.filter((p) => p.id !== id));
       if (selectedProject?.id === id) setSelectedProject(null);
     } catch (error) {
       console.error('Error deleting project:', error);
@@ -119,7 +142,7 @@ export default function ProjectsPage() {
 
   function copyContext() {
     if (!selectedProject) return;
-    
+
     const contextToCopy = `# ${selectedProject.title}
 
 ${selectedProject.description || ''}
@@ -142,6 +165,7 @@ ${selectedProject.learnings_summary}
     setDescription(project.description || '');
     setContextMarkdown(project.context_markdown);
     setLearningsSummary(project.learnings_summary);
+    setColor(project.color || 'blue');
     setIsEditing(false);
   }
 
@@ -155,6 +179,8 @@ ${selectedProject.learnings_summary}
 
   // Project detail view
   if (selectedProject) {
+    const colorClasses = getColorClasses(selectedProject.color || 'blue');
+
     return (
       <div className="space-y-6">
         <button
@@ -165,21 +191,24 @@ ${selectedProject.learnings_summary}
           <span>Back to projects</span>
         </button>
 
-        <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+        <div className={`bg-slate-800 rounded-xl border-l-4 ${colorClasses.border} border border-slate-700 overflow-hidden`}>
           <div className="p-6 border-b border-slate-700">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="text-2xl font-bold bg-slate-700 text-white rounded px-3 py-1 w-full"
-                  />
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="text-2xl font-bold bg-slate-700 text-white rounded px-3 py-1 w-full"
+                    />
+                    <ColorPicker selected={color} onChange={setColor} />
+                  </div>
                 ) : (
                   <h2 className="text-2xl font-bold text-white">{selectedProject.title}</h2>
                 )}
-                
+
                 {isEditing ? (
                   <textarea
                     value={description}
@@ -194,7 +223,7 @@ ${selectedProject.learnings_summary}
                   )
                 )}
               </div>
-              
+
               <div className="flex items-center space-x-2 ml-4">
                 {isEditing ? (
                   <>
@@ -211,6 +240,7 @@ ${selectedProject.learnings_summary}
                         setDescription(selectedProject.description || '');
                         setContextMarkdown(selectedProject.context_markdown);
                         setLearningsSummary(selectedProject.learnings_summary);
+                        setColor(selectedProject.color || 'blue');
                       }}
                       className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
                     >
@@ -250,18 +280,20 @@ ${selectedProject.learnings_summary}
                 Project Context
               </label>
               <p className="text-xs text-slate-500 mb-2">
-                Paste important context here—code snippets, decisions, current state. Copy this into new AI chats when you lose context.
+                Paste important context here—code snippets, decisions, current state. Copy this into new AI chats.
               </p>
               {isEditing ? (
                 <textarea
                   value={contextMarkdown}
                   onChange={(e) => setContextMarkdown(e.target.value)}
                   className="w-full h-64 bg-slate-700 text-slate-100 rounded-lg px-4 py-3 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  placeholder="# Current state&#10;&#10;## What's working&#10;- ...&#10;&#10;## What's left to do&#10;- ...&#10;&#10;## Key code&#10;```&#10;...&#10;```"
+                  placeholder="# Current state&#10;&#10;## What's working&#10;- ...&#10;&#10;## What's left to do&#10;- ..."
                 />
               ) : (
                 <div className="w-full min-h-32 bg-slate-700/50 text-slate-100 rounded-lg px-4 py-3 font-mono text-sm whitespace-pre-wrap">
-                  {contextMarkdown || <span className="text-slate-500 italic">No context yet. Click edit to add.</span>}
+                  {contextMarkdown || (
+                    <span className="text-slate-500 italic">No context yet. Click edit to add.</span>
+                  )}
                 </div>
               )}
             </div>
@@ -278,11 +310,13 @@ ${selectedProject.learnings_summary}
                   value={learningsSummary}
                   onChange={(e) => setLearningsSummary(e.target.value)}
                   className="w-full h-40 bg-slate-700 text-slate-100 rounded-lg px-4 py-3 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  placeholder="- Don't use X because...&#10;- Chose Y over Z because...&#10;- Remember to always..."
+                  placeholder="- Don't use X because...&#10;- Chose Y over Z because..."
                 />
               ) : (
                 <div className="w-full min-h-24 bg-slate-700/50 text-slate-100 rounded-lg px-4 py-3 font-mono text-sm whitespace-pre-wrap">
-                  {learningsSummary || <span className="text-slate-500 italic">No learnings yet. Click edit to add.</span>}
+                  {learningsSummary || (
+                    <span className="text-slate-500 italic">No learnings yet. Click edit to add.</span>
+                  )}
                 </div>
               )}
             </div>
@@ -328,6 +362,10 @@ ${selectedProject.learnings_summary}
               className="w-full bg-slate-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               rows={2}
             />
+            <div>
+              <label className="block text-sm text-slate-400 mb-2">Color</label>
+              <ColorPicker selected={color} onChange={setColor} />
+            </div>
             <div className="flex space-x-3">
               <button
                 onClick={createProject}
@@ -341,6 +379,7 @@ ${selectedProject.learnings_summary}
                   setShowNewForm(false);
                   setTitle('');
                   setDescription('');
+                  setColor('blue');
                 }}
                 className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
               >
@@ -359,24 +398,27 @@ ${selectedProject.learnings_summary}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <button
-              key={project.id}
-              onClick={() => openProject(project)}
-              className="text-left bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-indigo-500 transition-colors group"
-            >
-              <h3 className="font-medium text-white group-hover:text-indigo-400 transition-colors">
-                {project.title}
-              </h3>
-              {project.description && (
-                <p className="text-slate-400 text-sm mt-1 line-clamp-2">{project.description}</p>
-              )}
-              <div className="flex items-center space-x-1 text-slate-500 text-xs mt-3">
-                <Clock size={12} />
-                <span>Updated {new Date(project.updated_at).toLocaleDateString()}</span>
-              </div>
-            </button>
-          ))}
+          {projects.map((project) => {
+            const colorClasses = getColorClasses(project.color || 'blue');
+            return (
+              <button
+                key={project.id}
+                onClick={() => openProject(project)}
+                className={`text-left bg-slate-800 rounded-xl border-l-4 ${colorClasses.border} border border-slate-700 p-5 ${colorClasses.hover} transition-colors group`}
+              >
+                <h3 className="font-medium text-white group-hover:text-indigo-400 transition-colors">
+                  {project.title}
+                </h3>
+                {project.description && (
+                  <p className="text-slate-400 text-sm mt-1 line-clamp-2">{project.description}</p>
+                )}
+                <div className="flex items-center space-x-1 text-slate-500 text-xs mt-3">
+                  <Clock size={12} />
+                  <span>Updated {new Date(project.updated_at).toLocaleDateString()}</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

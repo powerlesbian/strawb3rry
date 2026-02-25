@@ -1,27 +1,19 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  LayoutDashboard,
   FolderKanban,
-  MessageSquare,
-  Sparkles,
-  BarChart3,
+  Lightbulb,
   Menu,
   X,
   LogOut,
-  Upload,
   Settings,
 } from 'lucide-react';
 
-type Page = 'dashboard' | 'projects' | 'conversations' | 'prompts' | 'insights' | 'import' | 'learnings' | 'profile';
+type Page = 'projects' | 'ideas' | 'settings';
 
 const navigation: { name: string; page: Page; icon: React.ElementType }[] = [
-  { name: 'Dashboard', page: 'dashboard', icon: LayoutDashboard },
   { name: 'Projects', page: 'projects', icon: FolderKanban },
-  { name: 'Conversations', page: 'conversations', icon: MessageSquare },
-  { name: 'Prompts', page: 'prompts', icon: Sparkles },
-  { name: 'Insights', page: 'insights', icon: BarChart3 },
-  { name: 'Import', page: 'import', icon: Upload },
+  { name: 'Ideas', page: 'ideas', icon: Lightbulb },
 ];
 
 type LayoutProps = {
@@ -90,25 +82,28 @@ export default function Layout({ children, currentPage, setCurrentPage }: Layout
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
           <button
             onClick={() => {
-              setCurrentPage('profile');
+              setCurrentPage('settings');
               setSidebarOpen(false);
             }}
-            className={`flex items-center space-x-3 px-4 py-2 mb-2 w-full rounded-lg transition-colors ${
-              currentPage === 'profile'
-                ? 'bg-indigo-600'
-                : 'hover:bg-slate-700'
+            className={`flex items-center space-x-3 px-4 py-2.5 mb-2 w-full rounded-lg transition-colors ${
+              currentPage === 'settings'
+                ? 'bg-indigo-600 text-white'
+                : 'text-slate-300 hover:bg-slate-700 hover:text-white'
             }`}
           >
+            <Settings size={20} />
+            <span>Settings</span>
+          </button>
+          <div className="flex items-center space-x-3 px-4 py-2 mb-2">
             <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
               <span className="text-white text-sm font-medium">
                 {user?.email?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-white truncate">{user?.email}</p>
+              <p className="text-sm text-slate-300 truncate">{user?.email}</p>
             </div>
-            <Settings size={16} className="text-slate-400" />
-          </button>
+          </div>
           <button
             onClick={handleSignOut}
             className="flex items-center space-x-3 px-4 py-2.5 w-full rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"

@@ -1,4 +1,4 @@
-//Create src/lib/supabase.ts
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -20,6 +20,8 @@ export type Profile = {
   updated_at: string;
 };
 
+export type ProjectColor = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink' | 'cyan';
+
 export type Project = {
   id: string;
   user_id: string;
@@ -27,20 +29,21 @@ export type Project = {
   description: string | null;
   context_markdown: string;
   learnings_summary: string;
+  color: ProjectColor;
   created_at: string;
   updated_at: string;
 };
 
-export type ProjectAttachment = {
-  id: string;
-  project_id: string;
-  user_id: string;
-  file_name: string;
-  file_url: string;
-  file_type: string | null;
-  file_size: number | null;
-  created_at: string;
-};
+export const PROJECT_COLORS: { name: ProjectColor; bg: string; border: string; hover: string }[] = [
+  { name: 'red', bg: 'bg-red-500', border: 'border-red-500', hover: 'hover:border-red-400' },
+  { name: 'orange', bg: 'bg-orange-500', border: 'border-orange-500', hover: 'hover:border-orange-400' },
+  { name: 'yellow', bg: 'bg-yellow-500', border: 'border-yellow-500', hover: 'hover:border-yellow-400' },
+  { name: 'green', bg: 'bg-green-500', border: 'border-green-500', hover: 'hover:border-green-400' },
+  { name: 'blue', bg: 'bg-blue-500', border: 'border-blue-500', hover: 'hover:border-blue-400' },
+  { name: 'purple', bg: 'bg-purple-500', border: 'border-purple-500', hover: 'hover:border-purple-400' },
+  { name: 'pink', bg: 'bg-pink-500', border: 'border-pink-500', hover: 'hover:border-pink-400' },
+  { name: 'cyan', bg: 'bg-cyan-500', border: 'border-cyan-500', hover: 'hover:border-cyan-400' },
+];
 
 export type Prompt = {
   id: string;
