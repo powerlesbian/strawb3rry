@@ -3,27 +3,10 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import AuthPage from './pages/AuthPage';
 import ProjectsPage from './pages/ProjectsPage';
+import IdeasPage from './pages/IdeasPage';
+import SettingsPage from './pages/SettingsPage';
 
 type Page = 'projects' | 'ideas' | 'settings';
-
-// Placeholder pages - we'll build these out
-function IdeasPage() {
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-white">Ideas</h2>
-      <p className="text-slate-400">Quick capture for thoughts and ideas. Coming soon.</p>
-    </div>
-  );
-}
-
-function SettingsPage() {
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-white">Settings</h2>
-      <p className="text-slate-400">App preferences. Coming soon.</p>
-    </div>
-  );
-}
 
 function AppContent() {
   const { user, loading } = useAuth();

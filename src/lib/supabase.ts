@@ -45,6 +45,14 @@ export const PROJECT_COLORS: { name: ProjectColor; bg: string; border: string; h
   { name: 'cyan', bg: 'bg-cyan-500', border: 'border-cyan-500', hover: 'hover:border-cyan-400' },
 ];
 
+export type Idea = {
+  id: string;
+  user_id: string;
+  content: string;
+  project_id: string | null;
+  created_at: string;
+};
+
 export type Prompt = {
   id: string;
   user_id: string;

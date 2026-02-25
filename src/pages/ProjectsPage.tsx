@@ -191,7 +191,8 @@ ${selectedProject.learnings_summary}
           <span>Back to projects</span>
         </button>
 
-        <div className={`bg-slate-800 rounded-xl border-l-4 ${colorClasses.border} border border-slate-700 overflow-hidden`}>
+        <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700">
+          <div className={`h-2 ${colorClasses.bg}`} />
           <div className="p-6 border-b border-slate-700">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -335,7 +336,12 @@ ${selectedProject.learnings_summary}
           <p className="text-slate-400">Your AI project workspaces</p>
         </div>
         <button
-          onClick={() => setShowNewForm(true)}
+          onClick={() => {
+            setShowNewForm(true);
+            setTitle('');
+            setDescription('');
+            setColor('blue');
+          }}
           className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500"
         >
           <Plus size={18} />
@@ -404,17 +410,20 @@ ${selectedProject.learnings_summary}
               <button
                 key={project.id}
                 onClick={() => openProject(project)}
-                className={`text-left bg-slate-800 rounded-xl border-l-4 ${colorClasses.border} border border-slate-700 p-5 ${colorClasses.hover} transition-colors group`}
+                className="text-left bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-slate-500 transition-colors group"
               >
-                <h3 className="font-medium text-white group-hover:text-indigo-400 transition-colors">
-                  {project.title}
-                </h3>
-                {project.description && (
-                  <p className="text-slate-400 text-sm mt-1 line-clamp-2">{project.description}</p>
-                )}
-                <div className="flex items-center space-x-1 text-slate-500 text-xs mt-3">
-                  <Clock size={12} />
-                  <span>Updated {new Date(project.updated_at).toLocaleDateString()}</span>
+                <div className={`h-2 ${colorClasses.bg}`} />
+                <div className="p-5">
+                  <h3 className="font-medium text-white group-hover:text-indigo-400 transition-colors">
+                    {project.title}
+                  </h3>
+                  {project.description && (
+                    <p className="text-slate-400 text-sm mt-1 line-clamp-2">{project.description}</p>
+                  )}
+                  <div className="flex items-center space-x-1 text-slate-500 text-xs mt-3">
+                    <Clock size={12} />
+                    <span>Updated {new Date(project.updated_at).toLocaleDateString()}</span>
+                  </div>
                 </div>
               </button>
             );
