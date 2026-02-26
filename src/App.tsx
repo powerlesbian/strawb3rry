@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Layout from './components/Layout';
+import { CryptoProvider } from './contexts/CryptoContext';
+import Layout, { type Page } from './components/Layout';
 import AuthPage from './pages/AuthPage';
 import ProjectsPage from './pages/ProjectsPage';
 import IdeasPage from './pages/IdeasPage';
+import SecretsPage from './pages/SecretsPage';
 import SettingsPage from './pages/SettingsPage';
-
-type Page = 'projects' | 'ideas' | 'settings';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -30,6 +30,8 @@ function AppContent() {
         return <ProjectsPage />;
       case 'ideas':
         return <IdeasPage />;
+      case 'secrets':
+        return <SecretsPage />;
       case 'settings':
         return <SettingsPage />;
       default:
@@ -47,7 +49,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <CryptoProvider>
+        <AppContent />
+      </CryptoProvider>
     </AuthProvider>
   );
 }

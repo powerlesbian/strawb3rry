@@ -78,6 +78,21 @@ export type Learning = {
   created_at: string;
 };
 
+export type SecretCategory = 'api_key' | 'password' | 'env_var' | 'other';
+
+export type Secret = {
+  id: string;
+  user_id: string;
+  project_id: string | null;
+  name: string;
+  encrypted_value: string;
+  iv: string;
+  category: SecretCategory;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 // LLM options
 export const TEXT_LLMS = [
   'Claude 3.5 Sonnet',

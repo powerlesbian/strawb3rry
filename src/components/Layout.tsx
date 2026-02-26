@@ -3,18 +3,22 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   FolderKanban,
   Lightbulb,
+  KeyRound,
   Menu,
   X,
   LogOut,
   Settings,
 } from 'lucide-react';
 
-type Page = 'projects' | 'ideas' | 'settings';
+type Page = 'projects' | 'ideas' | 'secrets' | 'settings';
 
 const navigation: { name: string; page: Page; icon: React.ElementType }[] = [
   { name: 'Projects', page: 'projects', icon: FolderKanban },
   { name: 'Ideas', page: 'ideas', icon: Lightbulb },
+  { name: 'Secrets', page: 'secrets', icon: KeyRound },
 ];
+
+export type { Page };
 
 type LayoutProps = {
   children: React.ReactNode;

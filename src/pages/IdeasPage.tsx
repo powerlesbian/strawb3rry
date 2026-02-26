@@ -115,9 +115,14 @@ export default function IdeasPage() {
             className="bg-slate-700 text-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           >
             <option value="">No project</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>{p.title}</option>
-            ))}
+            {projects
+              .filter((p) => {
+                try { return JSON.parse(localStorage.getItem('pinnedProjects') || '[]').includes(p.id); }
+                catch { return false; }
+              })
+              .map((p) => (
+                <option key={p.id} value={p.id}>{p.title}</option>
+              ))}
           </select>
           <button
             onClick={captureIdea}
