@@ -38,53 +38,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Load profile in a separate effect — never inside onAuthStateChange,
+  // as Supabase queries inside auth callbacks cause a deadlock
   useEffect(() => {
-    // Failsafe timeout - always stop loading after 3 seconds
-    const failsafe = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
+    if (user) {
+      loadProfile(user.id, user.email).then(setProfile);
+    } else {
+      setProfile(null);
+    }
+  }, [user]);
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+  useEffect(() => {
+    const failsafe = setTimeout(() => setLoading(false), 3000);
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      // Validate JWT format — corrupted tokens cause Supabase to throw internally
       if (session?.access_token) {
-        // Validate JWT format — corrupted tokens throw TypeError inside Supabase
         try {
           const parts = session.access_token.split('.');
           if (parts.length !== 3) throw new Error('bad jwt');
           JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
         } catch {
-          await supabase.auth.signOut();
-          clearTimeout(failsafe);
-          setLoading(false);
-          return;
-        }
-
-        // If access token is expired, refresh it now before the app loads.
-        // This avoids Supabase doing a mid-session refresh (which uses eval
-        // and may be blocked by CSP), preventing infinite spinners on data pages.
-        if (session.expires_at && session.expires_at * 1000 < Date.now()) {
-          const { data: refreshed, error } = await supabase.auth.refreshSession();
-          if (error || !refreshed.session) {
-            await supabase.auth.signOut();
-            clearTimeout(failsafe);
-            setLoading(false);
-            return;
-          }
-          setSession(refreshed.session);
-          setUser(refreshed.session.user);
-          const p = await loadProfile(refreshed.session.user.id, refreshed.session.user.email);
-          setProfile(p);
+          supabase.auth.signOut();
           clearTimeout(failsafe);
           setLoading(false);
           return;
         }
       }
-
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        const p = await loadProfile(session.user.id, session.user.email);
-        setProfile(p);
-      }
       clearTimeout(failsafe);
       setLoading(false);
     }).catch(() => {
@@ -92,25 +74,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Expired or invalid refresh token — force a clean sign-out
-      if (event === 'TOKEN_REFRESH_FAILED') {
-        await supabase.auth.signOut();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'TOKEN_REFRESH_FAILED' || event === 'SIGNED_OUT') {
+        // Clear localStorage tokens directly — avoids calling auth methods
+        // inside the auth state machine which can cause deadlocks
+        Object.keys(localStorage)
+          .filter(k => k.startsWith('sb-'))
+          .forEach(k => localStorage.removeItem(k));
         setSession(null);
         setUser(null);
-        setProfile(null);
         setLoading(false);
         return;
       }
-
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        const p = await loadProfile(session.user.id, session.user.email);
-        setProfile(p);
-      } else {
-        setProfile(null);
-      }
     });
 
     return () => {
