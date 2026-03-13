@@ -1,9 +1,23 @@
 {
-  "name": "AI Conversations Tracker",
-  "short_name": "AI Tracker",
+  "name": "Strawb3rry",
+  "short_name": "Strawb3rry",
+  "description": "Your personal AI workflow companion",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#6366f1",
-  "icons": []
+  "icons": [
+    {
+      "src": "/strawb3rryIcon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/strawb3rryIcon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }

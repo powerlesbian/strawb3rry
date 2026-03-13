@@ -303,8 +303,8 @@ export default function ProjectsPage() {
 
           <div className="p-6 space-y-6">
             <div>
-              <label htmlFor="project-context" className="block text-sm font-medium text-slate-300 mb-2">Project Context</label>
-              <p className="text-xs text-slate-500 mb-2">Paste important context here—code snippets, decisions, current state. Copy this into new AI chats.</p>
+              <label htmlFor="project-context" className="block text-sm font-medium text-slate-300 mb-2">Context</label>
+              <p className="text-xs text-slate-500 mb-2">Current state, decisions, and notes. Copy this into a new AI chat to pick up where you left off.</p>
               {isEditing ? (
                 <textarea
                   id="project-context"
@@ -324,8 +324,8 @@ export default function ProjectsPage() {
             </div>
 
             <div>
-              <label htmlFor="project-learnings" className="block text-sm font-medium text-slate-300 mb-2">Key Learnings & Decisions</label>
-              <p className="text-xs text-slate-500 mb-2">Record important mistakes, insights, and why you made certain decisions.</p>
+              <label htmlFor="project-learnings" className="block text-sm font-medium text-slate-300 mb-2">Learnings & Decisions</label>
+              <p className="text-xs text-slate-500 mb-2">What you've figured out, what didn't work, and why you made certain calls.</p>
               {isEditing ? (
                 <textarea
                   id="project-learnings"
@@ -372,7 +372,7 @@ export default function ProjectsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Projects</h2>
-          <p className="text-slate-400">Your AI project workspaces</p>
+          <p className="text-slate-400">Context logs for your ongoing work</p>
         </div>
         <button
           onClick={() => { setShowNewForm(true); setTitle(''); setDescription(''); setColor('blue'); }}
@@ -435,7 +435,7 @@ export default function ProjectsPage() {
         <div className="text-center py-16 bg-slate-800/50 rounded-xl border border-slate-700">
           <FolderKanban className="mx-auto text-slate-600 mb-4" size={48} />
           <h3 className="text-lg font-medium text-slate-300">{search ? 'No matches' : 'No projects yet'}</h3>
-          <p className="text-slate-500 mt-1">{search ? 'Try a different search' : 'Create your first project to start tracking context'}</p>
+          <p className="text-slate-500 mt-1">{search ? 'Try a different search' : 'Create your first project to start keeping a context log'}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

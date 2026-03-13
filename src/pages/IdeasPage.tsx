@@ -110,23 +110,25 @@ export default function IdeasPage() {
           rows={3}
           autoFocus
         />
-        <div className="flex items-center justify-between gap-3">
-          <select
-            aria-label="Link to project"
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-            className="bg-slate-700 text-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-          >
-            <option value="">No project</option>
-            {projects
-              .filter((p) => {
-                try { return JSON.parse(localStorage.getItem('pinnedProjects') || '[]').includes(p.id); }
-                catch { return false; }
-              })
-              .map((p) => (
-                <option key={p.id} value={p.id}>{p.title}</option>
-              ))}
-          </select>
+        {projects.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {projects.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setProjectId(projectId === p.id ? '' : p.id)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                  projectId === p.id
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                {p.title}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center justify-end">
           <button
             onClick={captureIdea}
             disabled={!content.trim()}

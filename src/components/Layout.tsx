@@ -9,9 +9,10 @@ import {
   X,
   LogOut,
   Settings,
+  HelpCircle,
 } from 'lucide-react';
 
-type Page = 'projects' | 'ideas' | 'secrets' | 'media' | 'settings';
+type Page = 'projects' | 'ideas' | 'secrets' | 'media' | 'settings' | 'faq';
 
 const navigation: { name: string; page: Page; icon: React.ElementType }[] = [
   { name: 'Projects', page: 'projects', icon: FolderKanban },
@@ -86,6 +87,20 @@ export default function Layout({ children, currentPage, setCurrentPage }: Layout
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+          <button
+            onClick={() => {
+              setCurrentPage('faq');
+              setSidebarOpen(false);
+            }}
+            className={`flex items-center space-x-3 px-4 py-2.5 mb-2 w-full rounded-lg transition-colors ${
+              currentPage === 'faq'
+                ? 'bg-indigo-600 text-white'
+                : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <HelpCircle size={20} />
+            <span>FAQ</span>
+          </button>
           <button
             onClick={() => {
               setCurrentPage('settings');
