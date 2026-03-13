@@ -45,9 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 3000);
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      // Validate the JWT is parseable before using it — a corrupted token
-      // causes Supabase to throw TypeError internally, preventing auth from resolving
       if (session?.access_token) {
+        // Validate JWT format — corrupted tokens throw TypeError inside Supabase
         try {
           const parts = session.access_token.split('.');
           if (parts.length !== 3) throw new Error('bad jwt');
@@ -58,7 +57,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
           return;
         }
+
+        // If access token is expired, refresh it now before the app loads.
+        // This avoids Supabase doing a mid-session refresh (which uses eval
+        // and may be blocked by CSP), preventing infinite spinners on data pages.
+        if (session.expires_at && session.expires_at * 1000 < Date.now()) {
+          const { data: refreshed, error } = await supabase.auth.refreshSession();
+          if (error || !refreshed.session) {
+            await supabase.auth.signOut();
+            clearTimeout(failsafe);
+            setLoading(false);
+            return;
+          }
+          setSession(refreshed.session);
+          setUser(refreshed.session.user);
+          const p = await loadProfile(refreshed.session.user.id, refreshed.session.user.email);
+          setProfile(p);
+          clearTimeout(failsafe);
+          setLoading(false);
+          return;
+        }
       }
+
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
