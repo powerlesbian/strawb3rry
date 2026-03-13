@@ -78,6 +78,21 @@ export type Learning = {
   created_at: string;
 };
 
+export type MediaCategory = 'secure' | 'asset';
+
+export type Media = {
+  id: string;
+  user_id: string;
+  project_id: string | null;
+  name: string;
+  description: string | null;
+  storage_path: string;
+  mime_type: string;
+  size_bytes: number | null;
+  category: MediaCategory;
+  created_at: string;
+};
+
 export type SecretCategory = 'api_key' | 'password' | 'env_var' | 'other';
 
 export type Secret = {

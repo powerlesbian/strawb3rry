@@ -4,18 +4,20 @@ import {
   FolderKanban,
   Lightbulb,
   KeyRound,
+  ImageIcon,
   Menu,
   X,
   LogOut,
   Settings,
 } from 'lucide-react';
 
-type Page = 'projects' | 'ideas' | 'secrets' | 'settings';
+type Page = 'projects' | 'ideas' | 'secrets' | 'media' | 'settings';
 
 const navigation: { name: string; page: Page; icon: React.ElementType }[] = [
   { name: 'Projects', page: 'projects', icon: FolderKanban },
   { name: 'Ideas', page: 'ideas', icon: Lightbulb },
   { name: 'Secrets', page: 'secrets', icon: KeyRound },
+  { name: 'Media', page: 'media', icon: ImageIcon },
 ];
 
 export type { Page };

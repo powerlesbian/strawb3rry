@@ -7,6 +7,7 @@ import ProjectsPage from './pages/ProjectsPage';
 import IdeasPage from './pages/IdeasPage';
 import SecretsPage from './pages/SecretsPage';
 import SettingsPage from './pages/SettingsPage';
+import MediaPage from './pages/MediaPage';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -32,6 +33,8 @@ function AppContent() {
         return <IdeasPage />;
       case 'secrets':
         return <SecretsPage />;
+      case 'media':
+        return <MediaPage />;
       case 'settings':
         return <SettingsPage />;
       default:
