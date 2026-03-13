@@ -45,6 +45,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 3000);
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      // Validate the JWT is parseable before using it — a corrupted token
+      // causes Supabase to throw TypeError internally, preventing auth from resolving
+      if (session?.access_token) {
+        try {
+          const parts = session.access_token.split('.');
+          if (parts.length !== 3) throw new Error('bad jwt');
+          JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        } catch {
+          await supabase.auth.signOut();
+          clearTimeout(failsafe);
+          setLoading(false);
+          return;
+        }
+      }
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
