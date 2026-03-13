@@ -27,12 +27,33 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
 
   const checkVault = useCallback(async (userId: string) => {
     setVaultStatus('loading');
-    const { data } = await supabase
-      .from('vault_settings')
-      .select('user_id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    setVaultStatus(data ? 'locked' : 'not_setup');
+    let settled = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        setVaultStatus('not_setup');
+      }
+    }, 5000);
+
+    try {
+      const { data } = await supabase
+        .from('vault_settings')
+        .select('user_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      clearTimeout(timeoutId);
+      if (!settled) {
+        settled = true;
+        setVaultStatus(data ? 'locked' : 'not_setup');
+      }
+    } catch {
+      clearTimeout(timeoutId);
+      if (!settled) {
+        settled = true;
+        setVaultStatus('not_setup');
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -40,7 +61,7 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
       checkVault(user.id);
     } else {
       setKey(null);
-      setVaultStatus('loading');
+      setVaultStatus('not_setup');
     }
   }, [user, checkVault]);
 
