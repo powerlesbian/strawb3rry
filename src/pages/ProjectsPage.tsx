@@ -48,6 +48,8 @@ export default function ProjectsPage() {
   const [showNewForm, setShowNewForm] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
   const [search, setSearch] = useState('');
   const [pinnedIds, setPinnedIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('pinnedProjects') || '[]'); }
@@ -134,9 +136,13 @@ export default function ProjectsPage() {
       };
       setSelectedProject(updated);
       setProjects(projects.map((p) => (p.id === updated.id ? updated : p)));
+      setSaveError(null);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating project:', error);
+      setSaveError('Failed to save. Please try again.');
     }
   }
 
@@ -228,6 +234,8 @@ export default function ProjectsPage() {
                 {isEditing ? (
                   <div className="space-y-3">
                     <input
+                      id="project-title"
+                      aria-label="Project title"
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
@@ -240,6 +248,7 @@ export default function ProjectsPage() {
                 )}
                 {isEditing ? (
                   <textarea
+                    aria-label="Project description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Project description..."
@@ -254,20 +263,26 @@ export default function ProjectsPage() {
               </div>
               <div className="flex items-center space-x-2 ml-4">
                 {isEditing ? (
-                  <>
-                    <button onClick={updateProject} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500">Save</button>
-                    <button
-                      onClick={() => {
-                        setIsEditing(false);
-                        setTitle(selectedProject.title);
-                        setDescription(selectedProject.description || '');
-                        setContextMarkdown(selectedProject.context_markdown);
-                        setLearningsSummary(selectedProject.learnings_summary);
-                        setColor(selectedProject.color || 'blue');
-                      }}
-                      className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
-                    >Cancel</button>
-                  </>
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center space-x-2">
+                      <button onClick={updateProject} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500">
+                        {saved ? 'Saved!' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditing(false);
+                          setSaveError(null);
+                          setTitle(selectedProject.title);
+                          setDescription(selectedProject.description || '');
+                          setContextMarkdown(selectedProject.context_markdown);
+                          setLearningsSummary(selectedProject.learnings_summary);
+                          setColor(selectedProject.color || 'blue');
+                        }}
+                        className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
+                      >Cancel</button>
+                    </div>
+                    {saveError && <p className="text-red-400 text-xs">{saveError}</p>}
+                  </div>
                 ) : (
                   <>
                     <button onClick={copyContext} className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500">
@@ -288,10 +303,11 @@ export default function ProjectsPage() {
 
           <div className="p-6 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Project Context</label>
+              <label htmlFor="project-context" className="block text-sm font-medium text-slate-300 mb-2">Project Context</label>
               <p className="text-xs text-slate-500 mb-2">Paste important context here—code snippets, decisions, current state. Copy this into new AI chats.</p>
               {isEditing ? (
                 <textarea
+                  id="project-context"
                   value={contextMarkdown}
                   onChange={(e) => setContextMarkdown(e.target.value)}
                   className="w-full h-64 bg-slate-700 text-slate-100 rounded-lg px-4 py-3 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -308,10 +324,11 @@ export default function ProjectsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Key Learnings & Decisions</label>
+              <label htmlFor="project-learnings" className="block text-sm font-medium text-slate-300 mb-2">Key Learnings & Decisions</label>
               <p className="text-xs text-slate-500 mb-2">Record important mistakes, insights, and why you made certain decisions.</p>
               {isEditing ? (
                 <textarea
+                  id="project-learnings"
                   value={learningsSummary}
                   onChange={(e) => setLearningsSummary(e.target.value)}
                   className="w-full h-40 bg-slate-700 text-slate-100 rounded-lg px-4 py-3 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -371,6 +388,8 @@ export default function ProjectsPage() {
           <h3 className="text-lg font-medium text-white mb-4">Create New Project</h3>
           <div className="space-y-4">
             <input
+              id="project-title"
+              aria-label="Project title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -379,6 +398,7 @@ export default function ProjectsPage() {
               autoFocus
             />
             <textarea
+              aria-label="Project description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description (optional)"
@@ -402,6 +422,7 @@ export default function ProjectsPage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
+            aria-label="Search projects"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search projects..."

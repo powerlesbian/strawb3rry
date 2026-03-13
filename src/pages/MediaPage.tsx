@@ -205,8 +205,9 @@ export default function MediaPage() {
           </div>
           <p className="text-slate-400 text-sm">{uploadFile.name} · {formatBytes(uploadFile.size)}</p>
           <div>
-            <label className="block text-sm text-slate-400 mb-1.5">Name</label>
+            <label htmlFor="upload-name" className="block text-sm text-slate-400 mb-1.5">Name</label>
             <input
+              id="upload-name"
               type="text"
               value={uploadName}
               onChange={e => setUploadName(e.target.value)}
@@ -214,8 +215,9 @@ export default function MediaPage() {
             />
           </div>
           <div>
-            <label className="block text-sm text-slate-400 mb-1.5">Description (optional)</label>
+            <label htmlFor="upload-description" className="block text-sm text-slate-400 mb-1.5">Description (optional)</label>
             <input
+              id="upload-description"
               type="text"
               value={uploadDescription}
               onChange={e => setUploadDescription(e.target.value)}
@@ -225,8 +227,9 @@ export default function MediaPage() {
           </div>
           {tab === 'asset' && (
             <div>
-              <label className="block text-sm text-slate-400 mb-1.5">Project (optional)</label>
+              <label htmlFor="upload-project" className="block text-sm text-slate-400 mb-1.5">Project (optional)</label>
               <select
+                id="upload-project"
                 value={uploadProject}
                 onChange={e => setUploadProject(e.target.value)}
                 className="w-full bg-slate-700 text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"

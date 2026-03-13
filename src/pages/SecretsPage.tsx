@@ -75,6 +75,8 @@ function VaultGate({
           {/* Passphrase field with reveal toggle */}
           <div className="relative">
             <input
+              id="vault-passphrase"
+              aria-label={isSetup ? 'Choose a strong passphrase' : 'Master passphrase'}
               type={showPass ? 'text' : 'password'}
               value={passphrase}
               onChange={(e) => setPassphrase(e.target.value)}
@@ -96,6 +98,8 @@ function VaultGate({
           {isSetup && (
             <div className="relative">
               <input
+                id="vault-confirm-passphrase"
+                aria-label="Confirm passphrase"
                 type={showConfirm ? 'text' : 'password'}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
@@ -460,8 +464,9 @@ export default function SecretsPage() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-slate-400 mb-1.5">Name</label>
+                <label htmlFor="secret-name" className="block text-sm text-slate-400 mb-1.5">Name</label>
                 <input
+                  id="secret-name"
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
@@ -471,9 +476,10 @@ export default function SecretsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1.5">Value</label>
+                <label htmlFor="secret-value" className="block text-sm text-slate-400 mb-1.5">Value</label>
                 <div className="relative">
                   <input
+                    id="secret-value"
                     type={showFormValue ? 'text' : 'password'}
                     value={formValue}
                     onChange={(e) => setFormValue(e.target.value)}
@@ -492,8 +498,9 @@ export default function SecretsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1.5">Category</label>
+                  <label htmlFor="secret-category" className="block text-sm text-slate-400 mb-1.5">Category</label>
                   <select
+                    id="secret-category"
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value as SecretCategory)}
                     className="w-full bg-slate-700 text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -505,8 +512,9 @@ export default function SecretsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1.5">Project (optional)</label>
+                  <label htmlFor="secret-project" className="block text-sm text-slate-400 mb-1.5">Project (optional)</label>
                   <select
+                    id="secret-project"
                     value={formProject}
                     onChange={(e) => setFormProject(e.target.value)}
                     className="w-full bg-slate-700 text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -524,8 +532,9 @@ export default function SecretsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1.5">Notes (optional)</label>
+                <label htmlFor="secret-notes" className="block text-sm text-slate-400 mb-1.5">Notes (optional)</label>
                 <textarea
+                  id="secret-notes"
                   value={formNotes}
                   onChange={(e) => setFormNotes(e.target.value)}
                   placeholder="Where this is used, expiry date, etc."

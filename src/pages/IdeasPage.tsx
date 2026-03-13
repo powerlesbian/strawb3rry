@@ -100,6 +100,8 @@ export default function IdeasPage() {
       <div className="bg-slate-800 rounded-xl border border-slate-700 p-5 space-y-3">
         <textarea
           ref={textareaRef}
+          id="idea-content"
+          aria-label="Idea content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -110,6 +112,7 @@ export default function IdeasPage() {
         />
         <div className="flex items-center justify-between gap-3">
           <select
+            aria-label="Link to project"
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
             className="bg-slate-700 text-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -140,6 +143,7 @@ export default function IdeasPage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
+            aria-label="Search ideas"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search ideas..."

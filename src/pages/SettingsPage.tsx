@@ -91,9 +91,10 @@ export default function SettingsPage() {
           <p className="text-slate-300 text-sm">{user?.email}</p>
         </div>
         <div>
-          <label className="block text-xs text-slate-400 mb-1">Display name</label>
+          <label htmlFor="display-name" className="block text-xs text-slate-400 mb-1">Display name</label>
           <div className="flex gap-2">
             <input
+              id="display-name"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -117,8 +118,9 @@ export default function SettingsPage() {
           Change Password
         </h3>
         <div>
-          <label className="block text-xs text-slate-400 mb-1">New password</label>
+          <label htmlFor="new-password" className="block text-xs text-slate-400 mb-1">New password</label>
           <input
+            id="new-password"
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
@@ -126,8 +128,9 @@ export default function SettingsPage() {
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-400 mb-1">Confirm new password</label>
+          <label htmlFor="confirm-password" className="block text-xs text-slate-400 mb-1">Confirm new password</label>
           <input
+            id="confirm-password"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
