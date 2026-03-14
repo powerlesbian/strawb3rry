@@ -23,12 +23,11 @@
     }
     button:hover { background: #4338ca; }
     .note { font-size: 0.85rem; color: #6b7280; margin-top: 8px; }
-    .success { display: none; background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 16px; margin-top: 20px; color: #065f46; }
   </style>
 </head>
 <body>
   <h1>Strawb3rry Support</h1>
-  <p>Having an issue or got a question? Fill in the form below and we'll get back to you as soon as we can.</p>
+  <p>Having an issue or got a question? Fill in the form below and we'll open your email app with everything pre-filled.</p>
 
   <h2>Common questions</h2>
   <p><strong>I forgot my vault passphrase.</strong> Unfortunately the passphrase cannot be recovered — it never leaves your device. You will need to delete and recreate your vault from Settings.</p>
@@ -36,43 +35,38 @@
   <p><strong>How do I delete my account?</strong> Go to Settings → Delete Account. This permanently removes all your data.</p>
 
   <h2>Contact us</h2>
-  <form id="support-form" action="https://formsubmit.co/hello@cr33pylabs.com" method="POST">
-    <input type="hidden" name="_subject" value="Strawb3rry Support Request" />
-    <input type="hidden" name="_captcha" value="false" />
-    <input type="hidden" name="_next" value="https://cr33pylabs.com/support.html?sent=1" />
-
+  <form id="support-form">
     <label for="name">Your name</label>
-    <input type="text" id="name" name="name" placeholder="Jane Smith" required />
-
-    <label for="email">Your email</label>
-    <input type="email" id="email" name="email" placeholder="jane@example.com" required />
+    <input type="text" id="name" placeholder="Jane Smith" />
 
     <label for="topic">Topic</label>
-    <select id="topic" name="topic">
-      <option value="bug">Bug report</option>
-      <option value="account">Account issue</option>
-      <option value="vault">Secrets vault</option>
-      <option value="feedback">Feedback / feature request</option>
-      <option value="other">Other</option>
+    <select id="topic">
+      <option value="Bug report">Bug report</option>
+      <option value="Account issue">Account issue</option>
+      <option value="Secrets vault">Secrets vault</option>
+      <option value="Feedback / feature request">Feedback / feature request</option>
+      <option value="Other">Other</option>
     </select>
 
     <label for="message">Message</label>
-    <textarea id="message" name="message" placeholder="Describe your issue or question…" required></textarea>
+    <textarea id="message" placeholder="Describe your issue or question…"></textarea>
 
     <button type="submit">Send Message</button>
     <p class="note">We aim to respond within 2 business days.</p>
   </form>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('sent') === '1') {
-      document.getElementById('support-form').style.display = 'none';
-      const msg = document.createElement('div');
-      msg.className = 'success';
-      msg.style.display = 'block';
-      msg.innerHTML = '<strong>Message sent!</strong> We\'ll get back to you within 2 business days.';
-      document.querySelector('h2:last-of-type').after(msg);
-    }
+    document.getElementById('support-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const topic = document.getElementById('topic').value;
+      const message = document.getElementById('message').value.trim();
+      const subject = encodeURIComponent('Strawb3rry Support: ' + topic);
+      const body = encodeURIComponent(
+        (name ? 'From: ' + name + '\n\n' : '') + message
+      );
+      window.location.href = 'mailto:hello@cr33pylabs.com?subject=' + subject + '&body=' + body;
+    });
   </script>
 </body>
 </html>
