@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strawb3rry — Support</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 680px; margin: 60px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.7; }
+    h1 { font-size: 1.6rem; }
+    h2 { font-size: 1.1rem; margin-top: 2rem; }
+    p { margin: 0.5rem 0; }
+    label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; margin-top: 16px; }
+    input, textarea, select {
+      width: 100%; padding: 10px 12px; border: 1px solid #d1d5db;
+      border-radius: 8px; font-size: 1rem; font-family: inherit;
+      box-sizing: border-box;
+    }
+    textarea { height: 140px; resize: vertical; }
+    button {
+      margin-top: 20px; padding: 12px 28px; background: #4f46e5;
+      color: white; border: none; border-radius: 8px; font-size: 1rem;
+      cursor: pointer; font-family: inherit;
+    }
+    button:hover { background: #4338ca; }
+    .note { font-size: 0.85rem; color: #6b7280; margin-top: 8px; }
+    .success { display: none; background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 16px; margin-top: 20px; color: #065f46; }
+  </style>
+</head>
+<body>
+  <h1>Strawb3rry Support</h1>
+  <p>Having an issue or got a question? Fill in the form below and we'll get back to you as soon as we can.</p>
+
+  <h2>Common questions</h2>
+  <p><strong>I forgot my vault passphrase.</strong> Unfortunately the passphrase cannot be recovered — it never leaves your device. You will need to delete and recreate your vault from Settings.</p>
+  <p><strong>My data isn't syncing.</strong> Check your internet connection and try signing out and back in from Settings.</p>
+  <p><strong>How do I delete my account?</strong> Go to Settings → Delete Account. This permanently removes all your data.</p>
+
+  <h2>Contact us</h2>
+  <form id="support-form" action="https://formsubmit.co/hello@cr33pylabs.com" method="POST">
+    <input type="hidden" name="_subject" value="Strawb3rry Support Request" />
+    <input type="hidden" name="_captcha" value="false" />
+    <input type="hidden" name="_next" value="https://cr33pylabs.com/support.html?sent=1" />
+
+    <label for="name">Your name</label>
+    <input type="text" id="name" name="name" placeholder="Jane Smith" required />
+
+    <label for="email">Your email</label>
+    <input type="email" id="email" name="email" placeholder="jane@example.com" required />
+
+    <label for="topic">Topic</label>
+    <select id="topic" name="topic">
+      <option value="bug">Bug report</option>
+      <option value="account">Account issue</option>
+      <option value="vault">Secrets vault</option>
+      <option value="feedback">Feedback / feature request</option>
+      <option value="other">Other</option>
+    </select>
+
+    <label for="message">Message</label>
+    <textarea id="message" name="message" placeholder="Describe your issue or question…" required></textarea>
+
+    <button type="submit">Send Message</button>
+    <p class="note">We aim to respond within 2 business days.</p>
+  </form>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('sent') === '1') {
+      document.getElementById('support-form').style.display = 'none';
+      const msg = document.createElement('div');
+      msg.className = 'success';
+      msg.style.display = 'block';
+      msg.innerHTML = '<strong>Message sent!</strong> We\'ll get back to you within 2 business days.';
+      document.querySelector('h2:last-of-type').after(msg);
+    }
+  </script>
+</body>
+</html>
